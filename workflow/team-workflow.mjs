@@ -64,7 +64,8 @@ if (!task || !task.slug || !task.title) {
 const slug = task.slug;
 const title = task.title;
 const desc = task.desc || "";
-const maxRounds = args.maxRounds || 2;
+const maxRounds =
+  Number.isInteger(args.maxRounds) && args.maxRounds > 0 ? args.maxRounds : 2;
 const needsBackend = task.needsBackend !== false;
 const needsFrontend = task.needsFrontend !== false;
 
@@ -228,6 +229,7 @@ for (round = 1; round <= maxRounds; round++) {
 实现依据：${TASKDIR}/design.md、${TASKDIR}/plan.md、${TASKDIR}/prd.md
 工作目录：${WT_BE}（分支 ${BRANCH_BE}，基于 ${BRANCH}；不存在先创建：
 git -C "${REPO}" worktree add "${WT_BE}" -b "${BRANCH_BE}" "${BRANCH}"）
+若已存在（回环轮）：先 git -C "${WT_BE}" merge "${BRANCH}" 同步集成分支最新内容（QA/Review 文档），再开始修改。
 
 要求：
 - 安全与业务逻辑进 core/；会话/命令/keyring 在 app/src-tauri/；Node 仅限工具链/CI/脚本
@@ -255,6 +257,7 @@ ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证�
 实现依据：${TASKDIR}/design.md、${TASKDIR}/plan.md、${TASKDIR}/prd.md
 工作目录：${WT_FE}（分支 ${BRANCH_FE}，基于 ${BRANCH}；不存在先创建：
 git -C "${REPO}" worktree add "${WT_FE}" -b "${BRANCH_FE}" "${BRANCH}"）
+若已存在（回环轮）：先 git -C "${WT_FE}" merge "${BRANCH}" 同步集成分支最新内容（QA/Review 文档），再开始修改。
 
 要求：
 - 只改 app/ui/（React + TypeScript），密码/加密逻辑一律通过 Tauri command 走后端
@@ -439,7 +442,7 @@ if (
     merged: false,
     reason:
       qaResult && qaResult.verdict === "fail" ? "QA 未通过" : "Review 未通过",
-    roundsUsed: round,
+    roundsUsed: Math.min(round, maxRounds),
     artifacts: {
       prd: `${TASKDIR}/prd.md`,
       plan: `${TASKDIR}/plan.md`,
