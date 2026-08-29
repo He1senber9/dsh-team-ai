@@ -1,27 +1,46 @@
 {
   "name": "dsh-team-ai",
   "version": "0.1.0",
-  "description": "AI 开发团队插件：7 个角色 skill（PM、PjM、架构师、后端、前端、QA、Review）+ 团队编排引导与 workflow 模板，装入 DSH profile 后按需加载",
+  "description": "AI 开发团队插件：7 个角色 skill（PM、PjM、架构师、后端、前端、QA、Review）+ 团队编排引导、workflow 模板与 Web GUI 团队看板面板，装入 DSH profile 后按需加载",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
     ".": {
       "default": "./lib/index.js"
     },
+    "./client": {
+      "types": "./lib/types/client.d.ts",
+      "default": "./lib/client.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
     "lib",
+    "bin",
     "skills",
     "workflow",
+    "src",
+    "scripts",
     "cordis.patch.yml",
     "README.md",
     "LICENSE"
   ],
+  "scripts": {
+    "build:client": "node scripts/build-client.mjs",
+    "watch:client": "node scripts/build-client.mjs --watch",
+    "check": "node --check lib/index.js && node --check bin/kanban.mjs && node scripts/build-client.mjs --check"
+  },
   "license": "MIT",
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
     }
   },
   "peerDependencies": {
@@ -30,10 +49,14 @@
     "@deepseek-ai/dsh-skill-filesystem": "^0.1.0-rc.8",
     "@deepseek-ai/schemastery": "^3.18.0"
   },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  },
   "keywords": [
     "dsh",
     "dsh-bundle",
     "ai-team",
-    "skill"
+    "skill",
+    "kanban"
   ]
 }
