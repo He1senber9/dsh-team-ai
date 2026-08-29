@@ -1,0 +1,10 @@
+# dsh-team-ai bundle patch：把 AI 开发团队 skills 挂载进 profile。
+#
+# 只 insert 一个条目：插件（lib/index.js）在运行时用 import.meta.url 定位包内
+# skills/ 目录并注册为独立 skill provider（复用 @deepseek-ai/dsh-skill-filesystem
+# 的 FileSystemSkillProvider，includeDefaultRoots: false 只看到本包 skills），
+# 因此这里无需写任何绝对路径。
+
+- insert:
+    - id: team-ai
+      name: dsh-team-ai
