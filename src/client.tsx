@@ -45,7 +45,16 @@ function createKanbanSource(): KanbanSource {
   };
   const load = () => {
     fetch("/team-ai/kanban.json", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const type = res.headers.get("content-type") || "";
+        if (!type.includes("application/json")) {
+          throw new Error(
+            "路由未返回 JSON（服务器可能未重启/插件未加载新代码，或看板路由未注册）",
+          );
+        }
+        return res.json();
+      })
       .then((data) => {
         snapshot = data as KanbanState;
         emit();
