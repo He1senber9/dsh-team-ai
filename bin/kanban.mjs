@@ -21,7 +21,7 @@
 // 状态值：idle | working | done | blocked
 // ============================================================================
 
-import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync, realpathSync } from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
@@ -341,9 +341,17 @@ function main() {
 }
 
 // 直接执行（node bin/kanban.mjs ...）时才跑 CLI；被 lib/index.js 等 import 时只导出函数。
-const isDirectRun =
-  process.argv[1] !== undefined &&
-  import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+// 注意：profile 里以符号链接安装（node_modules/dsh-team-ai -> 真实目录），argv[1] 是链接路径而
+// import.meta.url 解析为真实路径，必须用 realpathSync 归一化后再比较，否则经链接调用会静默空转。
+let isDirectRun = false;
+if (process.argv[1] !== undefined) {
+  try {
+    isDirectRun =
+      import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
+  } catch {
+    isDirectRun = false;
+  }
+}
 if (isDirectRun) {
   process.exit(main());
 }

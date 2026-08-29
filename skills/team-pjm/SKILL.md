@@ -45,7 +45,7 @@ whenToUse: 作为 AI 团队的一员，在 PRD 完成后需要制定执行计划
 
 - 提交信息：`docs: 新增 <任务标题> 项目计划（plan.md）`
 - 看板登记（写入 `<仓库>/docs/team/kanban.json`）：先定位 CLI
-  `KANBAN_CLI=$(find "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)`；
+  `KANBAN_CLI=$(find -L "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)`；
   开工 `node "$KANBAN_CLI" start team-pjm --task <slug> --activity "编写 plan.md"`，完成 `node "$KANBAN_CLI" done team-pjm`；
   worktree 中执行必须加 `--repo <主仓库根>`
 - 发布：`timeout 300 git push -u origin task-<slug>`，用 GitHub API（凭据取自 `~/.git-credentials`）创建中文 PR 并合并，然后删除 worktree 与本地/远程分支；发布完成后 `node "$KANBAN_CLI" clear`（整单收尾，看板复位）

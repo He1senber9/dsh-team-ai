@@ -89,7 +89,7 @@ dsh plugin --profile web add /path/to/dsh-team-ai
 
 ```bash
 # 定位 CLI（插件装在 profile 的 node_modules 里）
-KANBAN_CLI=$(find "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)
+KANBAN_CLI=$(find -L "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)
 
 # 登记任务/阶段、开工、完成、复位
 node "$KANBAN_CLI" task <slug> --title "<标题>" --round N --phase <阶段> --repo <仓库>

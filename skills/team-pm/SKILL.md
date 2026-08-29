@@ -41,7 +41,7 @@ whenToUse: 作为 AI 团队的一员开始一个任务时；需要把一句话�
   `git -C <仓库> worktree add <worktree> -b task-<slug> origin/master`
 - 提交信息：`docs: 新增 <任务标题> 需求文档（prd.md）`（中文，单个逻辑变更）
 - 看板登记（团队状态可视化，写入 `<仓库>/docs/team/kanban.json`）：先定位 CLI
-  `KANBAN_CLI=$(find "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)`
+  `KANBAN_CLI=$(find -L "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)`
   开工 `node "$KANBAN_CLI" start team-pm --task <slug> --activity "编写 prd.md"`，完成 `node "$KANBAN_CLI" done team-pm`；
   在 worktree 中执行必须加 `--repo <主仓库根>`（否则状态文件会写进 worktree 而非主仓库）
 - 完成后汇报：prd.md 路径、验收标准条目数

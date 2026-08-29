@@ -89,7 +89,7 @@ const READ_FIRST = `
 提交信息一律中文（Conventional Commits），每个提交只含一个逻辑变更。
 
 团队看板（可选但推荐，写入 ${REPO}/docs/team/kanban.json）：
-  KANBAN_CLI=$(find "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)
+  KANBAN_CLI=$(find -L "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)
   用法：node "$KANBAN_CLI" task <slug> --title <标题> --round N --phase <阶段>   # 登记任务/阶段
         node "$KANBAN_CLI" start <role> --task <slug> --activity <描述>          # 开工
         node "$KANBAN_CLI" done <role>                                            # 完成

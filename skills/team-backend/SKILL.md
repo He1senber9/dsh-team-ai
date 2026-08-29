@@ -33,7 +33,7 @@ whenToUse: 作为 AI 团队的一员，在 design.md 完成后需要实现后端
 - 若 `<WT_BE>/target` 不存在：`ln -sfn <仓库>/target <WT_BE>/target`（共享编译缓存）
 - 提交信息中文（`feat:`/`fix:`/`refactor:` 等），每个提交只含一个逻辑变更
 - 看板登记（写入 `<仓库>/docs/team/kanban.json`）：先定位 CLI
-  `KANBAN_CLI=$(find "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)`；
+  `KANBAN_CLI=$(find -L "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)`；
   开工 `node "$KANBAN_CLI" start team-backend --task <slug> --activity "<正在实现的内容>"`，完成（含回环修复完成）`node "$KANBAN_CLI" done team-backend`；
   worktree 中执行必须加 `--repo <主仓库根>`
 - 回环时按 QA `bugs.md` / Review `review.md` 意见逐一修复并补充回归验证
