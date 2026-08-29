@@ -34,6 +34,6 @@ whenToUse: 接到一个需要多角色协作的功能/文档任务，需要按�
 ## 工作方式
 
 - 可以直接扮演编排者逐阶段调用各角色 skill（串行 + 并行：开发阶段后端/前端可并行）
-- 也可用插件随附的 workflow 模板（`<插件>/workflow/team-workflow.mjs`）一键编排：把脚本内容填入 DSH workflow 工具，meta 见文件头注释，args 传 `{ task: { slug, title, desc, needsBackend, needsFrontend }, maxRounds }`
+- 也可用插件随附的 workflow 模板（`<插件>/workflow/team-workflow.mjs`）一键编排：把脚本内容填入 DSH workflow 工具，meta 见文件头注释，args 传 `{ workspace, projectName?, ghRepo?, base?, task: { slug, title, desc, needsBackend, needsFrontend }, maxRounds }`。插件与具体项目解耦：`workspace` 必填（缺失即报错），`projectName` 缺省取 workspace 目录名，`ghRepo`（GitHub owner/repo，发布建 PR 用）缺省由发布环节从 git remote 推导，`base` 缺省 master
 - 分支命名 `task-<slug>`，worktree 建在 `<仓库>/.worktrees/` 下；提交信息一律中文（Conventional Commits）
 - 合并到 `master` 必须走 PR（中文标题与摘要）

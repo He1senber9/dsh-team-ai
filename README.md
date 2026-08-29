@@ -50,7 +50,7 @@ dsh plugin --profile web add /path/to/dsh-team-ai
 ### 方式二：workflow 一键编排
 
 把 `workflow/team-workflow.mjs` 内容粘贴到 DSH workflow 工具的 `script` 参数，
-`meta` 见文件头注释，`args` 传：
+`meta` 见文件头注释，`args` 传（以下仅为示例值，插件与具体项目解耦，不内置任何项目路径/仓库名）：
 
 ```json
 {
@@ -65,6 +65,14 @@ dsh plugin --profile web add /path/to/dsh-team-ai
   "maxRounds": 2
 }
 ```
+
+参数说明：
+
+- `workspace` / `repo`（必填）：目标仓库绝对路径，缺失时 workflow 直接报错
+- `projectName`（可选）：角色自称与文档抬头使用的项目名，缺省取 `workspace` 目录名
+- `ghRepo`（可选）：GitHub `owner/repo`，发布阶段建 PR 用；缺省由发布工程师从
+  `git remote get-url origin` 推导（支持 https 与 `git@` 形式）
+- `base`（可选）：目标合并分支，缺省 `master`
 
 ## 团队流程要点
 

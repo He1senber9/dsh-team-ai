@@ -19,9 +19,12 @@
 //     ]
 //   }
 //
-// args 参数示例：
+// args 参数示例（插件与具体项目解耦，不内置任何项目路径/仓库名）：
 //   {
-//     "workspace": "/path/to/your-repo",
+//     "workspace": "/path/to/your-repo",   // 必填：目标仓库绝对路径
+//     "projectName": "your-repo",          // 可选：角色自称/文档抬头的项目名，缺省取 workspace 目录名
+//     "ghRepo": "owner/your-repo",         // 可选：GitHub owner/repo（发布建 PR 用），缺省由发布环节从 git remote 推导
+//     "base": "master",                    // 可选：目标合并分支，缺省 master
 //     "task": {
 //       "slug": "password-generator",
 //       "title": "密码生成器",
@@ -34,8 +37,23 @@
 // ============================================================================
 
 // ===== 配置 =====
-// 目标仓库：优先取 args.workspace / args.repo，缺省为 your-repo。
-const REPO = args.workspace || args.repo || "/path/to/your-repo";
+// 目标仓库：必须显式指定（插件与具体项目解耦，不内置任何仓库路径/项目名）。
+const REPO = args.workspace || args.repo;
+if (!REPO) {
+  throw new Error(
+    "args.workspace（或 args.repo）必须指定目标仓库的绝对路径，如 /path/to/your-repo",
+  );
+}
+
+// 项目名：角色自称与文档抬头使用；缺省取仓库目录名。
+const projectName =
+  args.projectName || REPO.replace(/[\\/]+$/, "").split(/[\\/]/).pop();
+
+// GitHub 仓库（owner/repo）：发布阶段建 PR 用；缺省由发布工程师从 git remote 推导。
+const ghRepo = args.ghRepo; // 可选，如 "owner/your-repo"
+
+// 目标合并分支：缺省 master。
+const base = args.base || "master";
 
 const task = args.task;
 if (!task || !task.slug || !task.title) {
@@ -107,7 +125,7 @@ const mergeSchema = {
 phase("需求分析");
 const pmResult = await agent(
   `${READ_FIRST}
-你是 your-repo 的产品经理（PM）。任务：${title} —— ${desc}
+你是 ${projectName} 的产品经理（PM）。任务：${title} —— ${desc}
 
 工作区准备：目标 worktree ${WT}（分支 ${BRANCH}，基于 origin/master）。如不存在先创建：
 git -C "${REPO}" worktree add "${WT}" -b "${BRANCH}" origin/master
@@ -132,7 +150,7 @@ log(`PM 完成：${pmResult}`);
 phase("项目规划");
 const pjmResult = await agent(
   `${READ_FIRST}
-你是 your-repo 的项目经理（PjM）。任务：${title}
+你是 ${projectName} 的项目经理（PjM）。任务：${title}
 输入：${TASKDIR}/prd.md（PM 已产出）
 
 产出（写入 ${TASKDIR}/plan.md 并提交）：
@@ -155,7 +173,7 @@ log(`PjM 完成：${pjmResult}`);
 phase("架构设计");
 const archResult = await agent(
   `${READ_FIRST}
-你是 your-repo 的架构师。任务：${title}
+你是 ${projectName} 的架构师。任务：${title}
 输入：${TASKDIR}/prd.md、${TASKDIR}/plan.md；参考 ${REPO}/docs/architecture.md、${REPO}/docs/format.md
 
 产出（写入 ${TASKDIR}/design.md 并提交）：
@@ -192,7 +210,7 @@ for (round = 1; round <= maxRounds; round++) {
       }
       const out = await agent(
         `${READ_FIRST}
-你是 your-repo 的后端开发工程师（Rust / Node.js）。任务：${title}
+你是 ${projectName} 的后端开发工程师（Rust / Node.js）。任务：${title}
 实现依据：${TASKDIR}/design.md、${TASKDIR}/plan.md、${TASKDIR}/prd.md
 工作目录：${WT_BE}（分支 ${BRANCH_BE}，基于 ${BRANCH}；不存在先创建：
 git -C "${REPO}" worktree add "${WT_BE}" -b "${BRANCH_BE}" "${BRANCH}"）
@@ -217,7 +235,7 @@ ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证�
       }
       const out = await agent(
         `${READ_FIRST}
-你是 your-repo 的前端开发工程师。任务：${title}
+你是 ${projectName} 的前端开发工程师。任务：${title}
 实现依据：${TASKDIR}/design.md、${TASKDIR}/plan.md、${TASKDIR}/prd.md
 工作目录：${WT_FE}（分支 ${BRANCH_FE}，基于 ${BRANCH}；不存在先创建：
 git -C "${REPO}" worktree add "${WT_FE}" -b "${BRANCH_FE}" "${BRANCH}"）
@@ -241,7 +259,7 @@ ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证�
       }
       const out = await agent(
         `${READ_FIRST}
-你是 your-repo 的实现工程师（通用）。任务：${title} —— ${desc}
+你是 ${projectName} 的实现工程师（通用）。任务：${title} —— ${desc}
 实现依据：${TASKDIR}/design.md、${TASKDIR}/plan.md、${TASKDIR}/prd.md
 工作目录：${WT}（集成分支 ${BRANCH}，直接在此提交）
 
@@ -304,7 +322,7 @@ ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证�
   phase("质量保障");
   qaResult = await agent(
     `${READ_FIRST}
-你是 your-repo 的高级测试工程师（QA）。任务：${title}
+你是 ${projectName} 的高级测试工程师（QA）。任务：${title}
 工作目录：${WT}（集成分支 ${BRANCH}）
 验收标准：${TASKDIR}/prd.md；实现依据：${TASKDIR}/design.md
 
@@ -346,7 +364,7 @@ ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证�
   phase("代码审核");
   reviewResult = await agent(
     `${READ_FIRST}
-你是 your-repo 的代码审核（Review）。任务：${title}
+你是 ${projectName} 的代码审核（Review）。任务：${title}
 工作目录：${WT}（集成分支 ${BRANCH}）
 审核差异：git -C "${WT}" diff origin/master...HEAD
 依据：${TASKDIR}/prd.md、${TASKDIR}/design.md、${TASKDIR}/test-report.md、${TASKDIR}/bugs.md
@@ -420,16 +438,19 @@ const mergeResult = await agent(
 步骤：
 1. 推送集成分支（网络慢，务必加超时）：
    timeout 300 git -C "${REPO}" push -u origin "${BRANCH}"
-2. 创建 PR（标题与摘要一律中文）。凭据从 ~/.git-credentials 读取：
+2. 创建 PR（标题与摘要一律中文）。凭据从 ~/.git-credentials 读取；
+   GitHub 仓库（owner/repo）${ghRepo ? `使用 args.ghRepo=${ghRepo}` : "从 git remote 推导"}：
    CRED=$(grep -oE 'https://[^@]+@github\\.com' ~/.git-credentials | head -n1 | sed -E 's#https://##; s#@github\\.com##')
+   GH_REPO="${ghRepo || ''}"; [ -n "$GH_REPO" ] || GH_REPO=$(git -C "${REPO}" remote get-url origin | sed -E 's#.*github\\.com[:/]##; s#\\.git$##')
    curl -s -u "$CRED" -H "Accept: application/vnd.github+json" \
-     -d '{"title":"<中文标题，如：feat: 新增 ${title}>","head":"${BRANCH}","base":"master","body":"<中文摘要：变更说明 + ${TASKDIR}/prd.md、plan.md、design.md、test-report.md、review.md 路径 + 门槛结论>"}' \
-     https://api.github.com/repos/He1senber9/your-repo/pulls
-   从响应中取出 "number" 与 "html_url"。
-3. 合并 PR：
+     -d '{"title":"<中文标题，如：feat: 新增 ${title}>","head":"${BRANCH}","base":"${base}","body":"<中文摘要：变更说明 + ${TASKDIR}/prd.md、plan.md、design.md、test-report.md、review.md 路径 + 门槛结论>"}' \
+     "https://api.github.com/repos/$GH_REPO/pulls"
+   从响应中取出 "number" 与 "html_url"；若 404，核对 GH_REPO 是否形如 owner/repo
+   （用 git -C "${REPO}" remote get-url origin 检查 remote 地址）。
+3. 合并 PR（merge_method=merge，目标分支 ${base}）：
    curl -s -X PUT -u "$CRED" -H "Accept: application/vnd.github+json" \
      -d '{"merge_method":"merge"}' \
-     https://api.github.com/repos/He1senber9/your-repo/pulls/<number>/merge
+     "https://api.github.com/repos/$GH_REPO/pulls/<number>/merge"
 4. 清理（命令见 flow.md）：
    git -C "${REPO}" worktree remove "${WT}" --force
    git -C "${REPO}" worktree remove "${WT_BE}" --force
