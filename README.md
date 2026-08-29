@@ -25,14 +25,14 @@
 在 DSH profile（如 `~/.dsh/profiles/web`）安装本包：
 
 ```bash
-dsh plugin --profile web add dsh-team-ai
-```
+# 从 GitHub 安装（推荐）
+dsh plugin --profile web add github:He1senber9/dsh-team-ai#main
 
-或本地路径安装：
-
-```bash
+# 本地源码目录安装（仅开发调试用）
 dsh plugin --profile web add /path/to/dsh-team-ai
 ```
+
+> 本插件为公共插件，与任何具体项目解耦：不含项目路径、仓库名或私有凭据。
 
 安装后（必要时重启 DSH），`team-pm`、`team-qa` 等 8 个 skill 即可在会话中通过
 `skill` 工具加载。插件把本包 `skills/` 注册为独立 provider（`includeDefaultRoots: false`），
