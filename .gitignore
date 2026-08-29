@@ -1,3 +1,8 @@
 node_modules/
 *.log
 .DS_Store
+.idea/
+
+# 插件为库式包，锁文件不入库（安装以 profile 侧 pnpm 为准）
+package-lock.json
+pnpm-lock.yaml
