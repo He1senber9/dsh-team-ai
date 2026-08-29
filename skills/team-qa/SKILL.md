@@ -24,6 +24,10 @@ whenToUse: 作为 AI 团队的一员，在集成阶段完成后对功能做质�
 - `<仓库>/docs/tasks/<task>/test-report.md`：覆盖矩阵 + 门槛结果 + 缺陷列表
 - 如有缺陷同时写入 `<仓库>/docs/tasks/<task>/bugs.md`（每个缺陷：ID、级别、复现步骤、期望、实际）
 - 提交信息：`test: 提交 <任务标题> 测试报告与缺陷记录`
+- 看板登记（写入 `<仓库>/docs/team/kanban.json`）：先定位 CLI
+  `KANBAN_CLI=$(find "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)`；
+  验收开工 `node "$KANBAN_CLI" start team-qa --task <slug> --activity "AC 核对 + G1–G5 复跑 + 负面安全测试"`，完成 `node "$KANBAN_CLI" done team-qa`；
+  worktree 中执行必须加 `--repo <主仓库根>`
 
 ## 判定（严格）
 

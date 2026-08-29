@@ -41,4 +41,9 @@ whenToUse: 作为 AI 团队的一员，在 plan.md 完成后需要技术设计�
 ## 工作方式
 
 - 提交信息：`docs: 新增 <任务标题> 架构设计（design.md）`
+- 看板登记（写入 `<仓库>/docs/team/kanban.json`）：先定位 CLI
+  `KANBAN_CLI=$(find "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)`；
+  设计阶段开工 `node "$KANBAN_CLI" start team-architect --task <slug> --activity "编写 design.md"`，完成 `node "$KANBAN_CLI" done team-architect`；
+  集成阶段开工 `node "$KANBAN_CLI" start team-architect --task <slug> --activity "合并分支 + G1–G5 门槛"`，完成 `node "$KANBAN_CLI" done team-architect`；
+  worktree 中执行必须加 `--repo <主仓库根>`
 - 集成：`git merge task-<slug>-be` / `git merge task-<slug>-fe`（Already up to date 属正常），合并后跑 G1–G5 全量门槛

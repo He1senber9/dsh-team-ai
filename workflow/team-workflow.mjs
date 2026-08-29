@@ -86,6 +86,14 @@ const READ_FIRST = `
 仓库根目录：${REPO}（可用 pwd 验证）。所有 worktree 必须建在 ${REPO}/.worktrees/ 下。
 在 worktree 内先执行 git config core.hooksPath .githooks（提交时自动 cargo fmt / prettier）。
 提交信息一律中文（Conventional Commits），每个提交只含一个逻辑变更。
+
+团队看板（可选但推荐，写入 ${REPO}/docs/team/kanban.json）：
+  KANBAN_CLI=$(find "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)
+  用法：node "$KANBAN_CLI" task <slug> --title <标题> --round N --phase <阶段>   # 登记任务/阶段
+        node "$KANBAN_CLI" start <role> --task <slug> --activity <描述>          # 开工
+        node "$KANBAN_CLI" done <role>                                            # 完成
+        node "$KANBAN_CLI" clear                                                  # 整单复位
+  所有看板命令一律加 --repo "${REPO}"（worktree 中默认解析会指向 worktree 而非主仓库）。
 `;
 
 // ===== JSON Schema（agent 结构化返回） =====
@@ -137,6 +145,8 @@ git -C "${REPO}" worktree add "${WT}" -b "${BRANCH}" origin/master
 4. 不做技术选型（留给架构师）
 提交信息：docs: 新增 ${title} 需求文档（prd.md）
 
+看板：开工时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round 1 --phase 需求分析 --repo "${REPO}" && node "$KANBAN_CLI" start team-pm --task ${slug} --activity "编写 prd.md" --repo "${REPO}"；提交后 node "$KANBAN_CLI" done team-pm --repo "${REPO}"。
+
 完成后汇报：prd.md 路径、验收标准条目数。`,
   { label: "产品经理", phase: "需求分析" },
 );
@@ -160,6 +170,8 @@ const pjmResult = await agent(
 4. DoD（flow.md 通用门槛 G1–G7）与风险缓解
 提交信息：docs: 新增 ${title} 项目计划（plan.md）
 
+看板：开工时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round 1 --phase 项目规划 --repo "${REPO}" && node "$KANBAN_CLI" start team-pjm --task ${slug} --activity "编写 plan.md" --repo "${REPO}"；提交后 node "$KANBAN_CLI" done team-pjm --repo "${REPO}"。
+
 完成后汇报：plan.md 路径、WBS 条目数、风险清单。`,
   { label: "项目经理", phase: "项目规划" },
 );
@@ -182,6 +194,8 @@ const archResult = await agent(
 3. 数据模型变更（如涉及，说明版本化格式兼容，见 docs/format.md）
 4. 安全影响分析：涉及加密/密钥/凭据库时必写威胁与缓解（Argon2id 参数、AEAD、zeroize、日志脱敏）
 提交信息：docs: 新增 ${title} 架构设计（design.md）
+
+看板：开工时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round 1 --phase 架构设计 --repo "${REPO}" && node "$KANBAN_CLI" start team-architect --task ${slug} --activity "编写 design.md" --repo "${REPO}"；提交后 node "$KANBAN_CLI" done team-architect --repo "${REPO}"。
 
 完成后汇报：design.md 路径、归属层清单、安全影响分析结论。`,
   { label: "架构师", phase: "架构设计" },
@@ -224,6 +238,8 @@ git -C "${REPO}" worktree add "${WT_BE}" -b "${BRANCH_BE}" "${BRANCH}"）
 - 每个提交只含一个逻辑变更，提交信息中文（feat:/fix:/refactor: 等）
 - 门槛：cargo fmt --check、cargo clippy --workspace --all-targets -- -D warnings、cargo test --workspace
 ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证）：\n${feedback}` : ""}
+看板：开工时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round ${round} --phase 开发实现 --repo "${REPO}" && node "$KANBAN_CLI" start team-backend --task ${slug} --activity "<正在实现的内容>" --repo "${REPO}"；本分支工作（含回环修复）完成后 node "$KANBAN_CLI" done team-backend --repo "${REPO}"。
+
 完成后汇报：变更文件清单、门槛结果、提交列表。`,
         { label: "后端开发", phase: "开发实现" },
       );
@@ -247,6 +263,8 @@ git -C "${REPO}" worktree add "${WT_FE}" -b "${BRANCH_FE}" "${BRANCH}"）
 - 每个提交只含一个逻辑变更，提交信息中文（feat:/fix:/refactor: 等）
 - 门槛：npm run format:check、npm run build（在 ${WT_FE}/app 目录）
 ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证）：\n${feedback}` : ""}
+看板：开工时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round ${round} --phase 开发实现 --repo "${REPO}" && node "$KANBAN_CLI" start team-frontend --task ${slug} --activity "<正在实现的内容>" --repo "${REPO}"；本分支工作（含回环修复）完成后 node "$KANBAN_CLI" done team-frontend --repo "${REPO}"。
+
 完成后汇报：变更文件清单、门槛结果、提交列表。`,
         { label: "前端开发", phase: "开发实现" },
       );
@@ -274,6 +292,8 @@ ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证�
 - 门槛：cargo fmt --check、cargo clippy --workspace --all-targets -- -D warnings、
   cargo test --workspace、npm run format:check、npm run build
 ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证）：\n${feedback}` : ""}
+看板：开工时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round ${round} --phase 开发实现 --repo "${REPO}" && node "$KANBAN_CLI" start team-general --task ${slug} --activity "产出交付物" --repo "${REPO}"；完成后 node "$KANBAN_CLI" done team-general --repo "${REPO}"。
+
 完成后汇报：交付物清单、门槛结果、提交列表。`,
         { label: "通用实现", phase: "开发实现" },
       );
@@ -304,6 +324,7 @@ ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证�
    cd "${WT}/app" && npm run format:check && npm run build
    （若 ${WT}/app/node_modules 缺失：ln -sfn ${REPO}/app/node_modules ${WT}/app/node_modules）
 3. 仅允许修复集成层问题（合并冲突、门槛失败），不擅自改功能。
+看板：开工时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round ${round} --phase 集成 --repo "${REPO}" && node "$KANBAN_CLI" start team-architect --task ${slug} --activity "合并分支 + G1–G5 门槛" --repo "${REPO}"；完成后 node "$KANBAN_CLI" done team-architect --repo "${REPO}"。
 完成后汇报：合并结果与门槛结果。`,
     { label: "集成", phase: "集成" },
   );
@@ -340,7 +361,8 @@ ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证�
 - 提交信息：test: 提交 ${title} 测试报告与缺陷记录
 
 判定（严格）：AC 覆盖率 100% 且无未解决 P0/P1 缺陷 → verdict=pass；
-否则 verdict=fail 并在 defects 列出全部缺陷。`,
+否则 verdict=fail 并在 defects 列出全部缺陷。
+看板：开工时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round ${round} --phase 质量保障 --repo "${REPO}" && node "$KANBAN_CLI" start team-qa --task ${slug} --activity "AC 核对 + G1–G5 复跑 + 负面安全测试" --repo "${REPO}"；提交报告后 node "$KANBAN_CLI" done team-qa --repo "${REPO}"。`,
     { label: "QA", phase: "质量保障", schema: qaSchema },
   );
   if (!qaResult) {
@@ -381,7 +403,8 @@ ${feedback ? `上一轮 QA/审核意见（须逐一修复并补充回归验证�
 
 判定：无未解决 P0/P1 问题 → verdict=approve（securityPassed=true）；
 否则 verdict=request-changes 并列出全部 issues。
-注意：你只审核，绝不修改任何代码文件。`,
+注意：你只审核，绝不修改任何代码文件。
+看板：开工时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round ${round} --phase 代码审核 --repo "${REPO}" && node "$KANBAN_CLI" start team-reviewer --task ${slug} --activity "安全清单 + 风格 + 一致性审核" --repo "${REPO}"；提交 review.md 后 node "$KANBAN_CLI" done team-reviewer --repo "${REPO}"。`,
     { label: "Review", phase: "代码审核", schema: reviewSchema },
   );
   if (!reviewResult) {
@@ -457,6 +480,8 @@ const mergeResult = await agent(
    git -C "${REPO}" worktree remove "${WT_FE}" --force
    git -C "${REPO}" branch -d "${BRANCH}" "${BRANCH_BE}" "${BRANCH_FE}"
    timeout 300 git -C "${REPO}" push origin --delete "${BRANCH}"
+
+5. 看板：发布开始时 node "$KANBAN_CLI" task ${slug} --title "${title}" --round ${round} --phase 合并发布 --repo "${REPO}" && node "$KANBAN_CLI" start team-pjm --task ${slug} --activity "推送 + 中文 PR + 合并" --repo "${REPO}"；合并成功后 node "$KANBAN_CLI" done team-pjm --repo "${REPO}" && node "$KANBAN_CLI" clear --repo "${REPO}"（整单收尾，看板复位）。
 
 完成后汇报 merged / prUrl / prNumber。`,
   { label: "发布", phase: "合并发布", schema: mergeSchema },

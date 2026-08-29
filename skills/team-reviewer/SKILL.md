@@ -24,6 +24,10 @@ whenToUse: 作为 AI 团队的一员，在 QA 通过后对集成分支做代码�
 
 - `<仓库>/docs/tasks/<task>/review.md`：检查清单逐项结果 + issues
 - 提交信息：`docs: 提交 <任务标题> 代码审核报告`
+- 看板登记（写入 `<仓库>/docs/team/kanban.json`）：先定位 CLI
+  `KANBAN_CLI=$(find "$HOME/.dsh" -maxdepth 6 -name kanban.mjs -path '*dsh-team-ai*' 2>/dev/null | head -n1)`；
+  审核开工 `node "$KANBAN_CLI" start team-reviewer --task <slug> --activity "安全清单 + 风格 + 一致性审核"`，完成 `node "$KANBAN_CLI" done team-reviewer`；
+  worktree 中执行必须加 `--repo <主仓库根>`
 
 ## 判定（严格）
 
