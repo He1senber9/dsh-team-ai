@@ -39,14 +39,17 @@ interface KanbanSource {
   load(): void;
 }
 
-function createKanbanSource(): KanbanSource {
+function createKanbanSource(getRepoPath: () => string | undefined): KanbanSource {
   let snapshot: KanbanSnapshot = null;
   const listeners = new Set<() => void>();
   const emit = () => {
     for (const listener of listeners) listener();
   };
   const load = () => {
-    fetch("/team-ai/kanban.json", { cache: "no-store" })
+    // 跟随当前工作区：传 ?repo=<当前工作区路径>，切换项目后面板自动跟随
+    const repo = getRepoPath();
+    const query = repo ? `?repo=${encodeURIComponent(repo)}` : "";
+    fetch(`/team-ai/kanban.json${query}`, { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const type = res.headers.get("content-type") || "";
@@ -286,8 +289,8 @@ function KanbanFooterAction({
 }
 
 // ===== 插件面 =====
-/** apply 需要的 cordis 服务：slots（运行时提供，list 槽注册）。 */
-export const inject = ["slots"];
+/** apply 需要的 cordis 服务：slots（list 槽注册）+ workspaces（当前工作区路径）。 */
+export const inject = ["slots", "workspaces"];
 
 /**
  * 插件主体：注册 sidebar.footer.action 条目（触发器 + 浮动面板）。
@@ -298,11 +301,30 @@ export function apply(ctx: {
     inject(hole: string, factory: () => unknown): unknown;
     register(descriptor: unknown, component: unknown): unknown;
   };
+  get(name: string): unknown;
   on(event: string, listener: () => void): unknown;
   off(event: string, listener: () => void): unknown;
   effect(fn: () => unknown, label?: string): unknown;
 }): void {
-  const source = createKanbanSource();
+  // 当前工作区路径：workspaces.list 的 recentWorkspaceId 对应的 workspace.path
+  const workspaces = ctx.get("workspaces") as
+    | {
+        list?: {
+          getSnapshot(): {
+            items?: { workspaceId: string; path: string }[];
+            recentWorkspaceId?: string;
+          };
+          subscribe(listener: () => void): () => void;
+        };
+      }
+    | undefined;
+  const getRepoPath = () => {
+    const state = workspaces?.list?.getSnapshot?.();
+    const items = state?.items ?? [];
+    const current = items.find((w) => w.workspaceId === state?.recentWorkspaceId);
+    return current?.path;
+  };
+  const source = createKanbanSource(getRepoPath);
   source.load();
   ctx.effect(() => {
     const dispose = ctx.slots.inject("sidebar.footer.action", () =>
@@ -318,8 +340,11 @@ export function apply(ctx: {
     );
     const onReset = () => source.load();
     ctx.on("connection/reset", onReset);
+    // 切换工作区/会话后重载看板（跟随当前项目）
+    const unsubscribeWorkspaces = workspaces?.list?.subscribe?.(() => source.load());
     return () => {
       if (typeof dispose === "function") dispose();
+      if (typeof unsubscribeWorkspaces === "function") unsubscribeWorkspaces();
       ctx.off("connection/reset", onReset);
     };
   }, "team-ai: kanban footer action");
