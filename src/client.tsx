@@ -200,7 +200,9 @@ function KanbanBoard({
 
   return (
     <div>
-      <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>AI 团队看板</div>
+      <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>
+        AI 团队看板{state.repoName ? ` · ${state.repoName}` : ""}
+      </div>
       <div style={{ color: "var(--dsw-alias-label-secondary, #57606a)", marginBottom: 10 }}>
         当前任务：
         {cur
@@ -263,7 +265,7 @@ function KanbanFooterAction({
     <div style={{ position: "relative" }}>
       <button
         type="button"
-        title="团队看板"
+        title={repoName ? `团队看板 · ${repoName}` : "团队看板"}
         onClick={() => setOpen((v) => !v)}
         style={{ ...triggerStyle, ...(open ? { color: "var(--dsw-alias-accent-fg, #0969da)" } : {}) }}
       >
