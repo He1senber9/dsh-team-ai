@@ -26,6 +26,8 @@ interface KanbanState {
     phase: string;
   } | null;
   roles: Record<string, KanbanRoleEntry>;
+  /** 看板所属项目名（kanbanRepo 目录名），服务端附加 */
+  repoName?: string | null;
 }
 
 type KanbanSnapshot = KanbanState | { error: string } | null;
@@ -253,6 +255,10 @@ function KanbanFooterAction({
   source: KanbanSource;
 }) {
   const [open, setOpen] = useState(false);
+  // 按钮标签跟随项目名（服务端 repoName），与工作区项目对应
+  const snapshot = useSyncExternalStore(source.subscribe, source.getSnapshot);
+  const repoName =
+    snapshot !== null && !("error" in snapshot) ? snapshot.repoName : null;
   return (
     <div style={{ position: "relative" }}>
       <button
@@ -262,7 +268,11 @@ function KanbanFooterAction({
         style={{ ...triggerStyle, ...(open ? { color: "var(--dsw-alias-accent-fg, #0969da)" } : {}) }}
       >
         <span style={{ flex: "none" }}>📋</span>
-        {!wide && <span>团队看板</span>}
+        {!wide && (
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {repoName ? `团队看板 · ${repoName}` : "团队看板"}
+          </span>
+        )}
       </button>
       {open && (
         <div style={layerStyle}>
